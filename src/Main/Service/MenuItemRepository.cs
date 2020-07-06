@@ -5,6 +5,7 @@ using RestSharp;
 using StackExchange.Redis;
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
 
 namespace OnlineOrderInfo.Service
@@ -25,6 +26,7 @@ namespace OnlineOrderInfo.Service
 
             RedisConnectorHelper redisConnector = new RedisConnectorHelper();
             IDatabase cacheDB;
+            var RedisCacheKeyPrefix = ConfigurationManager.AppSettings["RedisCacheKeyPrefix"].ToString();
 
             //retrieve the filtered menus
             try
@@ -34,19 +36,19 @@ namespace OnlineOrderInfo.Service
                     cacheDB = redisConnector.CacheDB;
                     List<List<HashEntry>> menuHashEntries = new List<List<HashEntry>>();
 
-                    cacheDB.StringSet("menus", JsonConvert.SerializeObject(menus));
+                    //cacheDB.StringSet("menus", JsonConvert.SerializeObject(menus));
 
                     foreach (var menu in menus)
                     {
                         var menuHashEntry = ConvertToHashEntryList(menu);
-                        cacheDB.HashSet("menu:" + menu.MenuItemId, menuHashEntry.ToArray());
+                        cacheDB.HashSet(RedisCacheKeyPrefix + "menu:" + menu.MenuItemId, menuHashEntry.ToArray());
 
-                        var hashEntries = cacheDB.HashGetAll("menu:" + menu.MenuItemId);
+                        var hashEntries = cacheDB.HashGetAll(RedisCacheKeyPrefix + "menu:" + menu.MenuItemId);
 
                         Menu filteredMenu = GetFilteredMenus(nameFilter, hashEntries);
-                        if(!(filteredMenu==null))
-                        { 
-                        filteredMenus.Add(filteredMenu);
+                        if (!(filteredMenu == null))
+                        {
+                            filteredMenus.Add(filteredMenu);
                         }
                     }
                 }
@@ -113,7 +115,7 @@ namespace OnlineOrderInfo.Service
             }
             finally
             {
-                
+
             }
             return menus;
         }

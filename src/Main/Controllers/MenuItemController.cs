@@ -15,7 +15,7 @@ namespace OnlineOrderInfo.Controllers
         {
             MenuItemRepository menuSvc = new MenuItemRepository();
             
-            return Ok(menuSvc.GetMenuItems(name,restaurantId));
+            return Ok(menuSvc.GetMenuItems(name.Trim(),restaurantId));
         }
 
 
